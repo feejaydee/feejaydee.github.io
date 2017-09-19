@@ -1,0 +1,57 @@
+$integration: 'http://ibm.com/appconnect/integration/v2/integrationFile'
+integration:
+  type: trigger-action
+  trigger-interfaces:
+    trigger-interface-1:
+      triggers:
+        CREATED:
+          input-context:
+            data: FormEntry
+          assembly:
+            $ref: '#/integration/assemblies/assembly-1'
+          options:
+            Hash: mpn3rgh1ft2oy1
+            parentFilter:
+              Hash: mpn3rgh1ft2oy1
+      connector-type: wufoo
+      connection-name: My Wufoo Account
+      type: event-trigger
+  action-interfaces:
+    action-interface-1:
+      type: api-action
+      business-object: incident
+      connector-type: servicenow
+      connection-name: My ServiceNow Account
+      actions:
+        CREATE: {}
+  assemblies:
+    assembly-1:
+      assembly:
+        execute:
+          - create-action:
+              name: ServiceNow Create incident
+              target:
+                $ref: '#/integration/action-interfaces/action-interface-1'
+              map:
+                $map: 'http://ibm.com/appconnect/map/v1'
+                mappings:
+                  - impact:
+                      expression: '$Trigger.Field13 '
+                  - caller_id:
+                      template: '{{$Trigger.Field1}} {{$Trigger.Field2}}'
+                  - work_notes:
+                      template: >-
+                        Email: {{$Trigger.Field3}}; Telephone:
+                        {{$Trigger.Field4}}; Department: {{$Trigger.Field6}};
+                        Location: {{$Trigger.Field5}}
+                  - short_description:
+                      template: '{{$Trigger.Field7}}'
+                  - comments:
+                      template: 'Description of issue: {{$Trigger.Field11}}'
+                  - category:
+                      template: '{{$Trigger.Field9}}'
+                input:
+                  - variable: Trigger
+                    $ref: '#/trigger/payload'
+  name: Add an IT service request as an incident
+models: {}
